@@ -1,0 +1,142 @@
+// 03_cb_indeagreg.mongo
+// Parte 2 - Índices e Agregações (database CB_indeagreg)
+
+db = db.getSiblingDB("CB_indeagreg");
+
+// limpar se já existir
+db.CB_indexar1.drop();
+db.CB_indexar2.drop();
+db.CB_Venda.drop();
+
+// ======================= CB_indexar1 =======================
+
+db.createCollection("CB_indexar1");
+
+db.CB_indexar1.insertMany([
+  {
+    _id: 1,
+    nome: "Ana",
+    cpf: "11111111111",
+    email: "ana@example.com",
+    idade: 25,
+    cidade: "SP",
+    tags: ["cliente", "vip"],
+    criadoEm: new Date()
+  },
+  {
+    _id: 2,
+    nome: "Bruno",
+    cpf: "22222222222",
+    email: "bruno@example.com",
+    idade: 30,
+    cidade: "RJ",
+    tags: ["cliente"],
+    criadoEm: new Date()
+  },
+  {
+    _id: 3,
+    nome: "Carla",
+    cpf: "33333333333",
+    email: "carla@example.com",
+    idade: 40,
+    cidade: "BH",
+    tags: ["fornecedor"],
+    criadoEm: new Date()
+  },
+  {
+    _id: 4,
+    nome: "Diego",
+    // sem cpf propositalmente para testar índice esparso
+    email: "diego@example.com",
+    idade: 35,
+    cidade: "SP",
+    tags: ["cliente", "atrasado"],
+    criadoEm: new Date()
+  }
+]);
+
+// 1) Índice não único e ascendente (usar 'idade')
+db.CB_indexar1.createIndex({ idade: 1 });
+
+// 2) Índice único e descendente em 'email'
+db.CB_indexar1.createIndex({ email: -1 }, { unique: true });
+
+// 3) Índice com dois atributos (cidade + idade)
+db.CB_indexar1.createIndex({ cidade: 1, idade: 1 });
+
+// 4) Índice para atributo array (tags)
+db.CB_indexar1.createIndex({ tags: 1 });
+
+// 5) Índice esparso (sparse) em 'cpf'
+db.CB_indexar1.createIndex({ cpf: 1 }, { sparse: true });
+
+// 6) Índice TTL (20 segundos) em 'criadoEm'
+db.CB_indexar1.createIndex(
+  { criadoEm: 1 },
+  { expireAfterSeconds: 20 }
+);
+
+// listar índices para evidência
+print("===== Índices CB_indexar1 =====");
+db.CB_indexar1.getIndexes();
+
+// ======================= CB_indexar2 =======================
+
+db.createCollection("CB_indexar2");
+
+db.CB_indexar2.insertMany([
+  { _id: 1, titulo: "Curso de MongoDB", categoria: "Banco", descricao: "NoSQL" },
+  { _id: 2, titulo: "Curso SQL", categoria: "Banco", descricao: "Relacional" },
+  { _id: 3, titulo: "Node.js", categoria: "Backend", descricao: "JavaScript" },
+  { _id: 4, titulo: "Python", categoria: "Backend", descricao: "Multiparadigma" }
+]);
+
+db.CB_indexar2.createIndex({ titulo: "text", descricao: "text" });
+
+print("===== Consulta texto MongoDB =====");
+db.CB_indexar2.find({ $text: { $search: "MongoDB" } });
+
+// ======================= CB_Venda =======================
+
+db.createCollection("CB_Venda");
+
+db.CB_Venda.insertMany([
+  // SP
+  { Cod_Venda: 1, UF_Venda: "SP", Desc_Prod_Vendido: "A", Valor_Venda: 100 },
+  { Cod_Venda: 2, UF_Venda: "SP", Desc_Prod_Vendido: "B", Valor_Venda: 200 },
+  { Cod_Venda: 3, UF_Venda: "SP", Desc_Prod_Vendido: "C", Valor_Venda: 300 },
+  { Cod_Venda: 4, UF_Venda: "SP", Desc_Prod_Vendido: "D", Valor_Venda: 400 },
+
+  // RJ
+  { Cod_Venda: 5, UF_Venda: "RJ", Desc_Prod_Vendido: "A", Valor_Venda: 150 },
+  { Cod_Venda: 6, UF_Venda: "RJ", Desc_Prod_Vendido: "B", Valor_Venda: 250 },
+  { Cod_Venda: 7, UF_Venda: "RJ", Desc_Prod_Vendido: "C", Valor_Venda: 350 },
+  { Cod_Venda: 8, UF_Venda: "RJ", Desc_Prod_Vendido: "D", Valor_Venda: 450 },
+
+  // MG
+  { Cod_Venda: 9, UF_Venda: "MG", Desc_Prod_Vendido: "A", Valor_Venda: 120 },
+  { Cod_Venda: 10, UF_Venda: "MG", Desc_Prod_Vendido: "B", Valor_Venda: 220 },
+  { Cod_Venda: 11, UF_Venda: "MG", Desc_Prod_Vendido: "C", Valor_Venda: 320 },
+  { Cod_Venda: 12, UF_Venda: "MG", Desc_Prod_Vendido: "D", Valor_Venda: 420 },
+
+  // PR
+  { Cod_Venda: 13, UF_Venda: "PR", Desc_Prod_Vendido: "A", Valor_Venda: 130 },
+  { Cod_Venda: 14, UF_Venda: "PR", Desc_Prod_Vendido: "B", Valor_Venda: 230 },
+  { Cod_Venda: 15, UF_Venda: "PR", Desc_Prod_Vendido: "C", Valor_Venda: 330 },
+  { Cod_Venda: 16, UF_Venda: "PR", Desc_Prod_Vendido: "D", Valor_Venda: 430 }
+]);
+
+print("===== Nº docs por UF =====");
+db.CB_Venda.aggregate([{ $group: { _id: "$UF_Venda", qtd: { $sum: 1 } } }]);
+
+print("===== Total vendas por UF =====");
+db.CB_Venda.aggregate([{ $group: { _id: "$UF_Venda", total: { $sum: "$Valor_Venda" } } }]);
+
+print("===== Média vendas por UF =====");
+db.CB_Venda.aggregate([{ $group: { _id: "$UF_Venda", media: { $avg: "$Valor_Venda" } } }]);
+
+print("===== Máximo por UF =====");
+db.CB_Venda.aggregate([{ $group: { _id: "$UF_Venda", maximo: { $max: "$Valor_Venda" } } }]);
+
+print("===== Mínimo por UF =====");
+db.CB_Venda.aggregate([{ $group: { _id: "$UF_Venda", minimo: { $min: "$Valor_Venda" } } }]);

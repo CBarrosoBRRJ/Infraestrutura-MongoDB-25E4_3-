@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Infraestrutura MongoDB - Projeto de Pós-graduação</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        :root {
+            --bg: #ffffff;
+            --fg: #222222;
+            --accent: #004b8d;
+            --border: #dddddd;
+            --code-bg: #111111;
+            --code-fg: #f5f5f5;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            background-color: var(--bg);
+            color: var(--fg);
+        }
+
+        header, main, footer {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        header h1 {
+            margin-bottom: 0.2rem;
+        }
+
+        header .meta {
+            font-size: 0.9rem;
+            color: #555555;
+        }
+
+        h1, h2, h3 {
+            color: #333333;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        code {
+            font-family: Consolas, "Courier New", monospace;
+            background-color: var(--code-bg);
+            color: var(--code-fg);
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            color: var(--code-fg);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        figure {
+            margin: 20px 0;
+        }
+
+        figure img {
+            max-width: 100%;
+            border: 1px solid var(--border);
+            display: block;
+            margin: 0 auto;
+        }
+
+        figure figcaption {
+            font-size: 0.85rem;
+            color: #555555;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .small {
+            font-size: 0.85rem;
+            color: #555555;
+        }
+
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid var(--border);
+        }
+
+        ul {
+            margin-left: 1.5rem;
+        }
+
+        section {
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                margin: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Infraestrutura MongoDB - Projeto de Pós-graduação</h1>
+    <p class="meta">
+        Autor: Caio Barroso<br>
+        Disciplina: Infraestrutura de Banco de Dados NoSQL (MongoDB)<br>
+        Ambiente: Windows 11 / MongoDB 8.2.2 / Mongosh 2.5.10
+    </p>
+    <hr>
+</header>
+
+<main>
+
+    <!-- 0. Objetivo e ambiente -->
+
+    <section id="objetivo">
+        <h2>0. Objetivo do trabalho</h2>
+        <p>
+            Este trabalho tem como propósito aplicar, em ambiente controlado, os principais conceitos abordados na
+            disciplina de Infraestrutura MongoDB. Para isso, são desenvolvidas atividades que contemplam tanto a
+            discussão conceitual sobre bancos de dados SQL e NoSQL quanto a implementação prática de recursos
+            fundamentais do MongoDB.
+        </p>
+        <p>
+            De forma sintetizada, o trabalho procura:
+        </p>
+        <ul>
+            <li>Comparar características de bases relacionais (SQL) e não relacionais (NoSQL);</li>
+            <li>Construir bases de dados e collections com operações de CRUD em MongoDB;</li>
+            <li>Explorar modelagem de dados em documentos, com relacionamentos 1-N e N-N;</li>
+            <li>Configurar e validar um Replica Set para fins de alta disponibilidade e tolerância a falhas;</li>
+            <li>Registrar evidências das execuções por meio de scripts e capturas de tela.</li>
+        </ul>
+    </section>
+
+    <section id="ambiente">
+        <h2>1. Ambiente e Ferramentas</h2>
+        <p>
+            As atividades foram realizadas em ambiente local, com a seguinte configuração:
+        </p>
+        <ul>
+            <li>Sistema Operacional: Microsoft Windows Workstation (build 26200);</li>
+            <li>MongoDB Server: versão 8.2.2 (64-bit);</li>
+            <li>Shell: <code>mongosh</code>, versão 2.5.10;</li>
+            <li>Editor de código: Visual Studio Code;</li>
+            <li>Diretório base do projeto: <code>E:\desenvolvimento\Infraestrutura MongoDB  25E4_3</code>.</li>
+        </ul>
+
+        <h3>1.1 Estrutura de pastas do projeto</h3>
+        <pre><code>E:.
+│   infraestrutura_mongodb.html
+│
+├───assets
+│   db.CB_col_filmes.primary.png
+│   db.CB_DEPARTAMENTO.find().pretty().png
+│   db.CB_DEPARTAMENTO.find(descricao_Tecnologia da Informacao).pretty().png
+│   db.CB_DEPENDENTE.distinct(nome).png
+│   db.CB_DEPENDENTE.find().pretty().png
+│   db.CB_DEPENDENTE.find().pretty()_2.png
+│   db.CB_FUNCIONARIO.find( _id 3 ).pretty().png
+│   db.CB_FUNCIONARIO.find().pretty().png
+│   db.CB_FUNCIONARIO.find({ salario { $gt 2000 } }).pretty().png
+│   replica_failover_novo_primary.png
+│   replica_find_secondary_28018.png
+│   replica_find_secondary_28019.png
+│   replica_status_inicial.png
+│   rs_secondary_28018_cb_filmes.png
+│
+└───scripts
+    01_cb_rh.mongo
+    02_cb_modelo.mongo
+    03_cb_indeagreg.mongo
+</code></pre>
+        <p class="small">
+            As imagens armazenadas em <code>assets</code> são utilizadas como evidências das operações executadas
+            no ambiente MongoDB.
+        </p>
+    </section>
+
+    <!-- 2. PARTE 1 - CONCEITOS -->
+
+    <section id="conceitos">
+        <h2>2. Parte 1 – Conceitos (SQL x NoSQL)</h2>
+
+        <h3>2.1 Diferenças entre bases SQL e NoSQL</h3>
+        <ul>
+            <li>
+                <strong>Modelo de dados:</strong><br>
+                Bancos SQL adotam o modelo relacional, baseado em tabelas, linhas, colunas e relacionamentos bem
+                definidos por chaves primárias e estrangeiras. Bancos NoSQL, por sua vez, utilizam modelos mais
+                flexíveis, como documentos JSON/BSON, chave–valor, colunas largas ou grafos.
+            </li>
+            <li>
+                <strong>Esquema:</strong><br>
+                Em bancos relacionais, o esquema costuma ser rígido, definido previamente por DDL, o que demanda
+                planejamento detalhado antes da carga de dados. Em bases NoSQL, o esquema tende a ser flexível ou
+                até mesmo <em>schema-less</em>, permitindo que documentos de uma mesma coleção possuam campos
+                diferentes e evoluam ao longo do tempo.
+            </li>
+            <li>
+                <strong>Escalabilidade:</strong><br>
+                Bancos SQL tradicionalmente priorizam escalabilidade vertical (aumento de recursos em um único
+                servidor). Já muitas soluções NoSQL foram projetadas desde a origem para escalabilidade horizontal,
+                por meio de particionamento (sharding) e distribuição dos dados entre vários nós.
+            </li>
+        </ul>
+
+        <h3>2.2 Semelhanças entre bases SQL e NoSQL</h3>
+        <ul>
+            <li>
+                Ambos os modelos têm como finalidade principal o armazenamento persistente de dados e suportam
+                operações de inserção, consulta, atualização e remoção.
+            </li>
+            <li>
+                Tanto em bancos relacionais quanto em não relacionais é possível estabelecer regras de integridade
+                e consistência, ainda que por mecanismos distintos (constraints e chaves em SQL; validações,
+                tipos e regras de aplicação em NoSQL).
+            </li>
+            <li>
+                Os dois tipos podem operar em ambientes distribuídos e de alta disponibilidade, com recursos de
+                replicação e recuperação em caso de falha.
+            </li>
+        </ul>
+
+        <h3>2.3 NoSQL é melhor ou pior que SQL?</h3>
+        <p>
+            A comparação entre SQL e NoSQL não deve ser feita em termos absolutos de “melhor” ou “pior”, mas sim
+            considerando o contexto de uso. Em geral, bancos SQL se destacam quando:
+        </p>
+        <ul>
+            <li>há necessidade de fortes garantias ACID e transações complexas;</li>
+            <li>são exigidos relatórios estruturados com muitas junções e agregações;</li>
+            <li>os dados são altamente estruturados e seguem regras rígidas de normalização.</li>
+        </ul>
+        <p>
+            Os bancos NoSQL tendem a se sobressair em cenários em que:
+        </p>
+        <ul>
+            <li>o volume de dados é muito grande e a estrutura tende a variar ao longo do tempo;</li>
+            <li>é desejável escalar horizontalmente, distribuindo dados por múltiplos servidores;</li>
+            <li>o modelo de dados precisa refletir de forma direta as estruturas utilizadas pela aplicação,
+                como documentos aninhados em MongoDB.
+            </li>
+        </ul>
+
+        <h3>2.4 Cenários para escolha SQL x NoSQL</h3>
+        <p>
+            Como exemplo de cenário adequado para SQL, pode-se citar um sistema financeiro que trate de operações
+            de crédito e débito, no qual a consistência forte, o controle transacional e a rastreabilidade são
+            requisitos indispensáveis. Nesse caso, um banco relacional transacional é mais apropriado.
+        </p>
+        <p>
+            Já um cenário típico para NoSQL é o de uma aplicação web ou mobile com grande volume de acessos e
+            dados semi-estruturados, como um catálogo de produtos com atributos diferentes por categoria. Nessa
+            situação, um banco orientado a documentos, como o MongoDB, permite flexibilidade de esquema e
+            escalabilidade horizontal com menor impacto na aplicação.
+        </p>
+
+        <h3>2.5 Tipos de bases NoSQL e características</h3>
+        <ul>
+            <li>
+                <strong>Chave–valor:</strong> armazenam pares simples chave → valor, normalmente em memória e
+                com acesso muito rápido. São usados em cenários como armazenamento de sessões, caches distribuídos
+                e contadores.
+            </li>
+            <li>
+                <strong>Documentos:</strong> utilizam documentos em estruturas semelhantes a JSON (ou BSON), como
+                no caso do MongoDB. Permitem representar objetos da aplicação de maneira natural, com campos
+                aninhados e listas.
+            </li>
+            <li>
+                <strong>Colunas largas:</strong> organizam dados em famílias de colunas, otimizando consultas
+                orientadas a leitura por chave de partição. São aplicáveis, por exemplo, a grandes volumes de
+                dados de log ou séries temporais.
+            </li>
+            <li>
+                <strong>Grafos:</strong> são especializados em armazenar relações entre entidades, oferecendo
+                consultas eficientes sobre caminhos, vizinhanças e padrões de conexão. São úteis em redes sociais,
+                recomendações e detecção de fraude.
+            </li>
+            <li>
+                <strong>Séries temporais:</strong> focam em dados indexados por tempo, com recursos específicos
+                para agregações por janelas temporais, o que facilita o trabalho com métricas, telemetria e
+                monitoramento.
+            </li>
+        </ul>
+        <p class="small">
+            Referências utilizadas: documentação oficial do MongoDB e material introdutório de bases de dados
+            NoSQL disponíveis em repositórios técnicos e documentação de produtos de mercado.
+        </p>
+    </section>
+
+    <!-- 3. PARTE 2 - PRÁTICA: CRUD EM CB_rh -->
+
+    <section id="crud">
+        <h2>3. Parte 2 – Prática: Database CB_rh (operações de CRUD)</h2>
+        <p>
+            Na primeira etapa prática, foi criado o database <code>CB_rh</code>, contemplando as collections
+            <code>CB_DEPARTAMENTO</code>, <code>CB_FUNCIONARIO</code> e <code>CB_DEPENDENTE</code>. Nelas foram
+            executadas operações de inserção de documentos, consultas, filtros, uso de
+            <code>distinct</code>, atualização e remoção, em conformidade com os itens A4 a A9 do enunciado.
+        </p>
+
+        <h3>3.1 Conteúdo das coleções</h3>
+
+        <figure>
+            <img src="./assets/db.CB_FUNCIONARIO.find().pretty().png"
+                 alt="Consulta básica na collection CB_FUNCIONARIO">
+            <figcaption>Figura 1 – Consulta básica na collection <code>CB_FUNCIONARIO</code>.</figcaption>
+        </figure>
+
+        <figure>
+            <img src="./assets/db.CB_DEPARTAMENTO.find().pretty().png"
+                 alt="Consulta na collection CB_DEPARTAMENTO">
+            <figcaption>Figura 2 – Consulta na collection <code>CB_DEPARTAMENTO</code>.</figcaption>
+        </figure>
+
+        <figure>
+            <img src="./assets/db.CB_DEPENDENTE.find().pretty().png"
+                 alt="Consulta na collection CB_DEPENDENTE">
+            <figcaption>Figura 3 – Consulta básica na collection <code>CB_DEPENDENTE</code>.</figcaption>
+        </figure>
+
+        <h3>3.2 Filtros e operações específicas</h3>
+
+        <figure>
+            <img src="./assets/db.CB_DEPARTAMENTO.find(descricao_Tecnologia da Informacao).pretty().png"
+                 alt="Filtro por descrição na collection CB_DEPARTAMENTO">
+            <figcaption>Figura 4 – Filtro por descrição em <code>CB_DEPARTAMENTO</code> (igualdade).</figcaption>
+        </figure>
+
+        <figure>
+            <img src="./assets/db.CB_FUNCIONARIO.find({ salario { $gt 2000 } }).pretty().png"
+                 alt="Funcionários com salário acima de 2000">
+            <figcaption>Figura 5 – Funcionários com salário &gt; 2000 em <code>CB_FUNCIONARIO</code>.</figcaption>
+        </figure>
+
+        <figure>
+            <img src="./assets/db.CB_DEPENDENTE.distinct(nome).png"
+                 alt="Distinct de nomes na collection CB_DEPENDENTE">
+            <figcaption>Figura 6 – Uso de <code>distinct("nome")</code> em <code>CB_DEPENDENTE</code>.</figcaption>
+        </figure>
+
+        <p>
+            Outros registros presentes na pasta <code>assets</code>, como
+            <code>db.CB_DEPENDENTE.find().pretty()_2.png</code> e
+            <code>db.CB_FUNCIONARIO.find( _id 3 ).pretty().png</code>, ilustram o efeito das operações de
+            atualização e remoção, demonstrando a alteração do conteúdo das coleções após tais comandos.
+        </p>
+    </section>
+
+    <!-- 4. PARTE 2 - PRÁTICA: REPLICA SET -->
+
+    <section id="replica-set">
+        <h2>4. Parte 2 – Prática: Replicação (Replica Set CB_rsposmit)</h2>
+
+        <h3>4.1 Criação das pastas de dados</h3>
+        <p>
+            Para possibilitar a configuração de um Replica Set, foram definidos diretórios distintos para
+            armazenar os dados de cada instância do servidor <code>mongod</code>, conforme segue:
+        </p>
+
+        <pre><code>Remove-Item "C:\mongo_rs" -Recurse -Force -ErrorAction SilentlyContinue
+
+New-Item -ItemType Directory -Path `
+  "C:\Users\barro\mongo_rs\rs1", `
+  "C:\Users\barro\mongo_rs\rs2", `
+  "C:\Users\barro\mongo_rs\rs3", `
+  "C:\Users\barro\mongo_rs\arb" -Force
+</code></pre>
+
+        <h3>4.2 Inicialização dos processos mongod</h3>
+        <p>
+            Em seguida, foram iniciadas três instâncias do servidor MongoDB, todas pertencentes ao Replica Set
+            <code>CB_rsposmit</code>, diferenciadas pelas portas e pelos diretórios de dados associados:
+        </p>
+
+        <pre><code>"C:\Program Files\MongoDB\Server\8.2\bin\mongod.exe" --replSet CB_rsposmit --port 28017 --dbpath "C:\Users\barro\mongo_rs\rs1" --bind_ip 127.0.0.1
+
+"C:\Program Files\MongoDB\Server\8.2\bin\mongod.exe" --replSet CB_rsposmit --port 28018 --dbpath "C:\Users\barro\mongo_rs\rs2" --bind_ip 127.0.0.1
+
+"C:\Program Files\MongoDB\Server\8.2\bin\mongod.exe" --replSet CB_rsposmit --port 28019 --dbpath "C:\Users\barro\mongo_rs\rs3" --bind_ip 127.0.0.1
+</code></pre>
+
+        <h3>4.3 Inicialização e configuração do Replica Set</h3>
+
+        <p>
+            A configuração do Replica Set foi realizada a partir da instância em <code>28017</code>, utilizando o
+            shell <code>mongosh</code>:
+        </p>
+
+        <pre><code>&amp; "C:\Mongo\mongosh\mongosh-2.5.10-win32-x64\bin\mongosh.exe" --port 28017
+</code></pre>
+
+        <p>Definição da configuração e efetiva inicialização:</p>
+
+        <pre><code>cfg = {
+  _id: "CB_rsposmit",
+  members: [
+    { _id: 0, host: "127.0.0.1:28017" },
+    { _id: 1, host: "127.0.0.1:28018" },
+    { _id: 2, host: "127.0.0.1:28019" }
+  ]
+};
+
+rs.initiate(cfg);
+</code></pre>
+
+        <p>
+            Após esse procedimento, o comando <code>rs.status()</code> confirmou a topologia do Replica Set, com
+            a instância em <code>127.0.0.1:28017</code> atuando como <strong>PRIMARY</strong> e as instâncias em
+            <code>127.0.0.1:28018</code> e <code>127.0.0.1:28019</code> como <strong>SECONDARY</strong>.
+        </p>
+
+        <figure>
+            <img src="./assets/replica_status_inicial.png"
+                 alt="Status inicial do Replica Set">
+            <figcaption>Figura 7 – Visão inicial do Replica Set <code>CB_rsposmit</code> via <code>rs.status()</code>.</figcaption>
+        </figure>
+
+        <p class="small">
+            Foi realizada ainda uma tentativa de inclusão de um árbitro com
+            <code>rs.addArb("127.0.0.1:28020")</code>. Contudo, a operação foi rejeitada pela versão 8.2 do
+            MongoDB por implicar alteração no <em>write concern</em> implícito. Diante disso, optou-se por
+            manter a topologia composta por três nós de dados, sem o uso de árbitro.
+        </p>
+    </section>
+
+    <section id="replicacao">
+        <h2>5. Testes de replicação</h2>
+
+        <h3>5.1 Inserção de dados no PRIMARY</h3>
+
+        <p>
+            Para validar a replicação, foi criado o database <code>CB_replica</code> e, dentro dele, a collection
+            <code>CB_col_filmes</code>, com cinco documentos representando filmes. As operações a seguir foram
+            executadas no nó PRIMARY (porta 28017):
+        </p>
+
+        <pre><code>db = db.getSiblingDB("CB_replica");
+
+db.createCollection("CB_col_filmes");
+
+db.CB_col_filmes.insertMany([
+  { _id: 1, titulo: "Filme 1", ano: 2000 },
+  { _id: 2, titulo: "Filme 2", ano: 2001 },
+  { _id: 3, titulo: "Filme 3", ano: 2002 },
+  { _id: 4, titulo: "Filme 4", ano: 2003 },
+  { _id: 5, titulo: "Filme 5", ano: 2004 }
+]);
+
+db.CB_col_filmes.find().pretty();
+</code></pre>
+
+        <figure>
+            <img src="./assets/db.CB_col_filmes.primary.png"
+                 alt="Consulta na collection CB_col_filmes no PRIMARY">
+            <figcaption>Figura 8 – Consulta à collection <code>CB_col_filmes</code> no PRIMARY.</figcaption>
+        </figure>
+
+        <h3>5.2 Leitura em SECONDARY (porta 28018)</h3>
+
+        <p>
+            Na sequência, foi realizada leitura em um dos nós secundários, permitindo acesso em modo leitura
+            com <code>rs.secondaryOk()</code>:
+        </p>
+
+        <pre><code>&amp; "C:\Mongo\mongosh\mongosh-2.5.10-win32-x64\bin\mongosh.exe" --port 28018
+
+rs.secondaryOk();
+db = db.getSiblingDB("CB_replica");
+db.CB_col_filmes.find().pretty();
+</code></pre>
+
+        <figure>
+            <img src="./assets/replica_find_secondary_28018.png"
+                 alt="Consulta na CB_col_filmes a partir do SECONDARY 28018">
+            <figcaption>Figura 9 – Leitura da collection <code>CB_col_filmes</code> no SECONDARY <code>127.0.0.1:28018</code>.</figcaption>
+        </figure>
+
+        <h3>5.3 Leitura em SECONDARY (porta 28019)</h3>
+
+        <p>
+            Procedimento análogo foi adotado para o segundo nó secundário:
+        </p>
+
+        <pre><code>&amp; "C:\Mongo\mongosh\mongosh-2.5.10-win32-x64\bin\mongosh.exe" --port 28019
+
+rs.secondaryOk();
+db = db.getSiblingDB("CB_replica");
+db.CB_col_filmes.find().pretty();
+</code></pre>
+
+        <figure>
+            <img src="./assets/replica_find_secondary_28019.png"
+                 alt="Consulta na CB_col_filmes a partir do SECONDARY 28019">
+            <figcaption>Figura 10 – Leitura da collection <code>CB_col_filmes</code> no SECONDARY <code>127.0.0.1:28019</code>.</figcaption>
+        </figure>
+
+        <p>
+            Em ambos os nós secundários, foram retornados os mesmos cinco documentos inseridos originalmente
+            no PRIMARY, o que comprova o funcionamento da replicação no Replica Set configurado.
+        </p>
+    </section>
+
+    <section id="failover">
+        <h2>6. Teste de failover (eleição de novo PRIMARY)</h2>
+
+        <h3>6.1 Desligamento do PRIMARY</h3>
+        <p>
+            Para avaliar o comportamento de failover, o processo associado ao nó PRIMARY (porta 28017) foi
+            identificado por meio do comando <code>netstat</code> e encerrado com <code>Stop-Process</code>,
+            simulando a falha do servidor:
+        </p>
+
+        <pre><code>netstat -ano | findstr 28017
+Stop-Process -Id &lt;PID_DO_PRIMARY&gt; -Force
+</code></pre>
+
+        <h3>6.2 Verificação do novo PRIMARY</h3>
+
+        <p>
+            Após alguns instantes, foi estabelecida nova conexão com um dos nós remanescentes (por exemplo,
+            porta 28018), e o estado do Replica Set foi verificado novamente com <code>rs.status()</code>,
+            observando qual instância havia assumido o papel de PRIMARY.
+        </p>
+
+        <figure>
+            <img src="./assets/replica_failover_novo_primary.png"
+                 alt="Novo PRIMARY após failover">
+            <figcaption>Figura 11 – Novo PRIMARY eleito após a simulação de falha da instância 28017.</figcaption>
+        </figure>
+
+        <p>
+            O resultado confirmou a eleição automática de um dos nós secundários como novo PRIMARY, evidenciando
+            a capacidade do Replica Set de manter a disponibilidade do banco de dados mesmo diante da perda
+            temporária de um de seus membros.
+        </p>
+    </section>
+
+    <section id="arbiter">
+        <h2>7. Considerações sobre arbiter e write concern</h2>
+
+        <p>
+            Foi realizado um experimento adicional com o objetivo de incluir um árbitro na configuração do 
+            Replica Set, por meio do comando:
+        </p>
+
+        <pre><code>rs.addArb("127.0.0.1:28020");
+</code></pre>
+
+        <p>
+            A operação, entretanto, foi rejeitada com a mensagem:
+        </p>
+
+        <pre><code>NewReplicaSetConfigurationIncompatible:
+Reconfig attempted to install a config that would change the implicit default write concern.
+Use the setDefaultRWConcern command to set a cluster-wide write concern and try the reconfig again.
+</code></pre>
+
+        <p>
+            Esse comportamento reflete uma postura mais restritiva das versões recentes do MongoDB em relação
+            a mudanças de topologia que impactem o <em>write concern</em> implícito. Considerando tratar-se de um
+            ambiente de laboratório, optou-se por prosseguir com uma configuração composta por três nós de dados
+            (um PRIMARY e dois SECONDARYs), sem árbitro, o que também atende às recomendações modernas de uso,
+            quando há disponibilidade de nós suficientes para votação.
+        </p>
+    </section>
+
+    <section id="conclusao">
+        <h2>8. Conclusão</h2>
+
+        <p>
+            O desenvolvimento deste trabalho permitiu consolidar, de forma prática, os conceitos discutidos
+            em sala de aula sobre bancos de dados NoSQL, com foco em MongoDB. Foram revisadas as diferenças e
+            semelhanças em relação a bancos relacionais, analisados cenários de aplicação adequados para cada
+            modelo e apresentados os principais tipos de bancos NoSQL em uso no mercado.
+        </p>
+
+        <p>
+            No âmbito prático, foram criados databases e collections, executadas operações de CRUD com filtros
+            específicos, utilizado o recurso de <code>distinct</code> e registradas as alterações por meio de
+            evidências em tela. Em seguida, foi configurado um Replica Set com três nós, realizada a inserção
+            de dados em um nó PRIMARY, verificada a replicação para os nós SECONDARY e conduzido um teste de
+            failover com eleição automática de um novo PRIMARY.
+        </p>
+
+        <p>
+            De maneira geral, as atividades demonstram como o MongoDB pode ser configurado para operar em
+            ambientes com requisitos de disponibilidade e resiliência, ao mesmo tempo em que oferece flexibilidade
+            de modelagem de dados. O conjunto de scripts e imagens anexados complementa o relatório textual e
+            documenta as principais etapas de configuração e validação executadas ao longo do trabalho.
+        </p>
+    </section>
+
+</main>
+
+<footer>
+    <hr>
+   
+</footer>
+
+</body>
+</html>

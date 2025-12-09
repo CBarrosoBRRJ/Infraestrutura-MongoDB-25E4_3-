@@ -1,0 +1,73 @@
+// 01_cb_rh.mongo
+// Parte 2 - Instalações e criações (database CB_rh)
+
+// usar database CB_rh
+db = db.getSiblingDB("CB_rh");
+
+// criar coleções
+db.createCollection("CB_DEPARTAMENTO");
+db.createCollection("CB_FUNCIONARIO");
+db.createCollection("CB_DEPENDENTE");
+
+// inserir 3 documentos em cada coleção
+// observação: pelo menos um documento em cada coleção terá atributo extra ou faltando
+
+// CB_DEPARTAMENTO
+db.CB_DEPARTAMENTO.insertMany([
+  { _id: 1, nome: "RH", descricao: "Recursos Humanos" },
+  { _id: 2, nome: "TI", descricao: "Tecnologia da Informacao", andar: 5 }, // atributo extra
+  { _id: 3, nome: "FIN", descricao: "Financeiro" }
+]);
+
+// CB_FUNCIONARIO
+db.CB_FUNCIONARIO.insertMany([
+  { _id: 1, nome: "Ana", salario: 1800, departamento_id: 1 },
+  { _id: 2, nome: "Bruno", salario: 2500, departamento_id: 2, cargo: "Dev" }, // atributo extra
+  { _id: 3, nome: "Carla", departamento_id: 3 } // salario ausente
+]);
+
+// CB_DEPENDENTE
+db.CB_DEPENDENTE.insertMany([
+  { _id: 1, nome: "Pedro", parentesco: "Filho", funcionario_id: 1 },
+  { _id: 2, nome: "Lucas", parentesco: "Filho", funcionario_id: 2, idade: 5 },
+  { _id: 3, nome: "Maria", parentesco: "Esposa", funcionario_id: 2 }
+]);
+
+// mostrar conteúdo de cada coleção
+print("===== CB_DEPARTAMENTO =====");
+db.CB_DEPARTAMENTO.find().pretty();
+
+print("===== CB_FUNCIONARIO =====");
+db.CB_FUNCIONARIO.find().pretty();
+
+print("===== CB_DEPENDENTE =====");
+db.CB_DEPENDENTE.find().pretty();
+
+// filtro em CB_DEPARTAMENTO baseado na descrição (igualdade)
+print("===== Filtro CB_DEPARTAMENTO por descricao = 'Tecnologia da Informacao' =====");
+db.CB_DEPARTAMENTO.find({ descricao: "Tecnologia da Informacao" }).pretty();
+
+// funcionários com salário acima de 2000
+print("===== CB_FUNCIONARIO com salario > 2000 =====");
+db.CB_FUNCIONARIO.find({ salario: { $gt: 2000 } }).pretty();
+
+// distinct em CB_DEPENDENTE para o atributo nome
+print("===== DISTINCT nome em CB_DEPENDENTE =====");
+db.CB_DEPENDENTE.distinct("nome");
+
+// update em CB_FUNCIONARIO (_id: 3)
+print("===== UPDATE em CB_FUNCIONARIO (_id: 3) =====");
+db.CB_FUNCIONARIO.updateOne(
+  { _id: 3 },
+  { $set: { salario: 2200, cargo: "Analista" } }
+);
+
+// mostrar resultado do update
+db.CB_FUNCIONARIO.find({ _id: 3 }).pretty();
+
+// delete em CB_DEPENDENTE (_id: 3)
+print("===== DELETE em CB_DEPENDENTE (_id: 3) =====");
+db.CB_DEPENDENTE.deleteOne({ _id: 3 });
+
+// mostrar coleção CB_DEPENDENTE após delete
+db.CB_DEPENDENTE.find().pretty();

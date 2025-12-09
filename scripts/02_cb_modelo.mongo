@@ -1,0 +1,74 @@
+// 02_cb_modelo.mongo
+// Parte 2 - Modelagem (database CB_modelo)
+
+db = db.getSiblingDB("CB_modelo");
+
+// ======================= MODELO 1-N =======================
+// CB_col1a (lado 1 - colecao mae)
+// CB_col2a (lado N - colecao filha)
+
+db.CB_col1a.drop();
+db.CB_col2a.drop();
+
+db.createCollection("CB_col1a");
+db.createCollection("CB_col2a");
+
+// inserir 2 documentos no lado 1
+db.CB_col1a.insertMany([
+  { _id: 1, nome: "Categoria A" },
+  { _id: 2, nome: "Categoria B" }
+]);
+
+// inserir 4 documentos no lado N (2 para cada categoria)
+db.CB_col2a.insertMany([
+  { _id: 1, nome: "Produto 1", categoria_id: 1 },
+  { _id: 2, nome: "Produto 2", categoria_id: 1 },
+  { _id: 3, nome: "Produto 3", categoria_id: 2 },
+  { _id: 4, nome: "Produto 4", categoria_id: 2 }
+]);
+
+print("===== MODELO 1-N: CB_col1a =====");
+db.CB_col1a.find().pretty();
+
+print("===== MODELO 1-N: CB_col2a =====");
+db.CB_col2a.find().pretty();
+
+// ======================= MODELO N-N =======================
+// Coleções: CB_col1b, CB_col2b e CB_relb (relacionamento)
+
+db.CB_col1b.drop();
+db.CB_col2b.drop();
+db.CB_relb.drop();
+
+db.createCollection("CB_col1b");
+db.createCollection("CB_col2b");
+db.createCollection("CB_relb");
+
+// 2 alunos
+db.CB_col1b.insertMany([
+  { _id: 1, nome: "Aluno 1" },
+  { _id: 2, nome: "Aluno 2" }
+]);
+
+// 2 cursos
+db.CB_col2b.insertMany([
+  { _id: 10, nome: "Curso A" },
+  { _id: 20, nome: "Curso B" }
+]);
+
+// 4 relacionamentos (N-N)
+db.CB_relb.insertMany([
+  { aluno_id: 1, curso_id: 10 },
+  { aluno_id: 1, curso_id: 20 },
+  { aluno_id: 2, curso_id: 10 },
+  { aluno_id: 2, curso_id: 20 }
+]);
+
+print("===== MODELO N-N: CB_col1b =====");
+db.CB_col1b.find().pretty();
+
+print("===== MODELO N-N: CB_col2b =====");
+db.CB_col2b.find().pretty();
+
+print("===== MODELO N-N: CB_relb =====");
+db.CB_relb.find().pretty();
