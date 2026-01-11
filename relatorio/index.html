@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Caio Barroso — Infraestrutura MongoDB</title>
+  <style>
+    :root{ --b:#e6e6e6; --bg:#fafafa; --txt:#111; --mut:#444; --ok:#2f8f2f; --warn:#d19a00; --bad:#b00020;}
+    body{ font-family: Arial, Helvetica, sans-serif; color:var(--txt); margin:24px; line-height:1.35; }
+    header{ border:1px solid var(--b); border-radius:14px; padding:16px; background:var(--bg); }
+    h1{ margin:0 0 6px 0; font-size:22px; }
+    .meta{ margin:0; color:var(--mut); font-size:13px; }
+    .meta b{ color:#111; }
+    nav{ margin:12px 0 0 0; font-size:13px; }
+    nav a{ margin-right:10px; text-decoration:none; }
+    nav a:hover{ text-decoration:underline; }
+    h2{ margin:22px 0 10px 0; padding-top:12px; border-top:2px solid var(--b); }
+    h3{ margin:16px 0 10px 0; }
+    .item{ border:1px solid var(--b); border-radius:14px; padding:14px; margin:14px 0; background:#fff; }
+    .grid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+    .box{ border:1px solid #ededed; border-radius:12px; padding:10px; background:var(--bg); }
+    .box h4{ margin:0 0 6px 0; font-size:14px; }
+    .box p{ margin:0; font-size:13px; }
+    pre{ margin:0; background:#f4f4f4; border:1px solid #e2e2e2; border-radius:12px; padding:10px; overflow:auto; }
+    code{ font-family: Consolas, monospace; font-size:12px; }
+    .evgrid{ display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; margin-top:10px; }
+    figure{ margin:0; border:1px solid var(--b); border-radius:12px; padding:10px; background:#fff; }
+    figure img{ width:100%; height:auto; border-radius:10px; }
+    figcaption{ font-size:12px; color:var(--mut); margin-top:6px; word-break:break-all; }
+    .onecol{ grid-template-columns: 1fr; }
+    .pill{ display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid var(--b); background:#fff; }
+    .pill.ok{ border-color:rgba(47,143,47,.3); background:rgba(47,143,47,.08); color:#123b12; }
+    .pill.warn{ border-color:rgba(209,154,0,.3); background:rgba(209,154,0,.10); color:#4a3a00; }
+    .pill.bad{ border-color:rgba(176,0,32,.3); background:rgba(176,0,32,.08); color:#5a0010; }
+    .small{ font-size:12px; color:var(--mut); }
+    table{ width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border:1px solid var(--b); border-radius:12px; background:#fff; }
+    th, td{ padding:10px; border-bottom:1px solid var(--b); vertical-align:top; font-size:13px; }
+    th{ background:var(--bg); text-align:left; }
+    tr:last-child td{ border-bottom:none; }
+    .mono{ font-family: Consolas, monospace; font-size:12px; }
+    @media print{
+      .item, figure, table{ break-inside: avoid; }
+      nav{ display:none; }
+      body{ margin:16px; }
+      a{ color:#000; text-decoration:none; }
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Relatório — Infraestrutura MongoDB</h1>
+  <p class="meta">
+    <b>Aluno:</b> Caio Barroso &nbsp;|&nbsp;
+    <b>Disciplina:</b> Infraestrutura MongoDB &nbsp;|&nbsp;
+    <b>Professor:</b> Ricardo Barrionuevo Garcia
+  </p>
+
+</header>
+
+<!-- ===================== RUBRICA ===================== -->
+<h2 id="rubrica">Rubrica / Evidências (o que o avaliador procura)</h2>
+
+<div class="item">
+  
+
+  <div style="margin-top:10px;">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:42%;">Item da rubrica</th>
+          <th style="width:33%;">Onde está no relatório</th>
+          <th style="width:25%;">Evidência (print)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1) Diferenças e semelhanças (SQL vs NoSQL)</td>
+          <td><a href="#p1-11">Parte 1.1</a></td>
+          <td><span class="pill ok">Texto</span></td>
+        </tr>
+        <tr>
+          <td>1) NoSQL é melhor/pior? Destaques e justificativa</td>
+          <td><a href="#p1-12">Parte 1.2</a></td>
+          <td><span class="pill ok">Texto</span></td>
+        </tr>
+        <tr>
+          <td>1) Cenário NoSQL e cenário SQL</td>
+          <td><a href="#p1-13">Parte 1.3</a></td>
+          <td><span class="pill ok">Texto</span></td>
+        </tr>
+        <tr>
+          <td>1) Tipos de NoSQL + características + fontes</td>
+          <td><a href="#p1-14">Parte 1.4</a></td>
+          <td><span class="pill ok">Texto</span></td>
+        </tr>
+
+        <tr>
+          <td>2) A4 — Conteúdo das coleções</td>
+          <td><a href="#A4">A4</a></td>
+          <td class="mono">evidencias/A04_conteudo_colecoes.png</td>
+        </tr>
+        <tr>
+          <td>2) A5 — Filtro igualdade em DEPARTAMENTO</td>
+          <td><a href="#A5">A5</a></td>
+          <td class="mono">evidencias/A05_filtro_igualdade_departamento.png</td>
+        </tr>
+        <tr>
+          <td>2) A6 — Salário &gt; 2000 em FUNCIONARIO</td>
+          <td><a href="#A6">A6</a></td>
+          <td class="mono">evidencias/A06_salario_maior_2000.png</td>
+        </tr>
+        <tr>
+          <td>2) A7 — distinct(nome) em DEPENDENTE</td>
+          <td><a href="#A7">A7</a></td>
+          <td class="mono">evidencias/A07_distinct_dependente_nome.png</td>
+        </tr>
+        <tr>
+          <td>2) A8 — update em uma coleção</td>
+          <td><a href="#A8">A8</a></td>
+          <td class="mono">evidencias/A08_update_funcionario.png</td>
+        </tr>
+        <tr>
+          <td>2) A9 — delete/remove em uma coleção</td>
+          <td><a href="#A9">A9</a></td>
+          <td class="mono">evidencias/A09_delete_dependente.png</td>
+        </tr>
+
+        <tr>
+          <td>3) B2 — Modelagem 1-N (referência)</td>
+          <td><a href="#B2">B2</a></td>
+          <td class="mono">evidencias/B01_modelagem_1N.png</td>
+        </tr>
+        <tr>
+          <td>3) B3 — Modelagem N-N</td>
+          <td><a href="#B3">B3</a></td>
+          <td class="mono">evidencias/B02_modelagem_NN.png</td>
+        </tr>
+
+        <tr>
+          <td>3) C2/C3/C4 — Índices/TTL/Text/Agregações (itens principais)</td>
+          <td><a href="#C1-C4">C Índices</a> e <a href="#C5">C Agregações</a></td>
+          <td class="mono">
+            evidencias/C01_indexar1_indices.png<br/>
+            evidencias/C02_ttl_antes.png<br/>
+            evidencias/C03_ttl_depois.png<br/>
+            evidencias/C04_text_index_busca.png<br/>
+            evidencias/C05_agregacoes_por_uf.png
+          </td>
+        </tr>
+
+        <tr>
+          <td>4) D3/D4 — Replica set (criação + leitura no secundário)</td>
+          <td><a href="#D">D</a></td>
+          <td class="mono">
+            evidencias/D01_mongod_rs_subindo.png<br/>
+            evidencias/D02_rs_status.png<br/>
+            evidencias/D13_insert_5_filmes_primary.png<br/>
+            evidencias/D14_read_filmes_secondary.png
+          </td>
+        </tr>
+
+        <tr>
+          <td>4) E3 — Sharding (mongos + add shards + shardCollection + distribuição)</td>
+          <td><a href="#E">E</a></td>
+          <td class="mono">
+            evidencias/E06_mongos_conectado_27050.png<br/>
+            evidencias/E07_add_shards_status.png<br/>
+            evidencias/E08_enable_sharding_db.png<br/>
+            evidencias/E09_shard_collection.png<br/>
+            evidencias/E10_insert_1000_docs.png<br/>
+            evidencias/E11_distribuicao_shards.png
+          </td>
+        </tr>
+
+        <tr>
+          <td>4) F1/F2/F3 — Storage engines e Segurança</td>
+          <td><a href="#F1">F1</a>, <a href="#F2">F2</a>, <a href="#F3">F3</a></td>
+          <td class="mono">
+            evidencias/F01_mmapv1_storage_engine.png<br/>
+            evidencias/F02_mmapv1_produtos_insert_4.png<br/>
+            evidencias/F04_wiredTiger_storage_engine.png<br/>
+            evidencias/F05_wiredTiger_lugares_insert_4.png<br/>
+            evidencias/F09_secure_login_dba_connectionStatus.png<br/>
+            evidencias/F11_createUser_CB_desenv.png<br/>
+            evidencias/F12_login_CB_desenv.png<br/>
+            evidencias/F13_insert_funcionarios_4.png
+          </td>
+        </tr>
+
+        <tr>
+          <td>4) G9–G13 — Backup/kill/delete/restore/validação</td>
+          <td><a href="#G">G</a></td>
+          <td class="mono">
+            evidencias/G11_backup_mongodump.png<br/>
+            evidencias/G10_taskkill.png <br/>
+            evidencias/G11_apagar_dados.png<br/>
+            evidencias/G12_restore_ok.png<br/>
+            evidencias/G13_contagem_colecoes_exerc4b.png
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+ 
+</div>
+
+<!-- ===================== PARTE 1 ===================== -->
+<h2 id="parte1">Parte 1 — Conceitos</h2>
+
+<div class="item" id="p1-11">
+  <h3>1.1 — 3 diferenças e 3 semelhanças entre SQL e NoSQL</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Diferenças (3)</h4>
+      <p>
+        <b>1)</b> SQL trabalha tipicamente com <b>esquema rígido</b> (tabelas/colunas e constraints); NoSQL tende a aceitar <b>esquema flexível</b>, facilitando evoluções incrementais do modelo.<br/>
+        <b>2)</b> SQL costuma priorizar <b>consistência forte</b> e transações com múltiplas entidades; NoSQL frequentemente prioriza <b>escala/alta disponibilidade</b>, aceitando consistência eventual em alguns cenários.<br/>
+        <b>3)</b> SQL é muito bom para dados relacionais e joins; NoSQL geralmente evita joins complexos (ou usa alternativas), apostando em <b>modelagem orientada ao acesso</b> e <b>distribuição horizontal</b>.
+      </p>
+    </div>
+    <div class="box">
+      <h4>Semelhanças (3)</h4>
+      <p>
+        <b>1)</b> Ambos existem para <b>persistência</b> e <b>consulta</b> de dados de forma confiável.<br/>
+        <b>2)</b> Ambos suportam <b>índices</b>, controle de acesso, logs e rotinas de backup/restore.<br/>
+        <b>3)</b> Em ambos, performance depende de modelagem + índices + padrão de consultas e de operação (monitoramento/capacidade).
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="item" id="p1-12">
+  <h3>1.2 — NoSQL é melhor ou pior que SQL?</h3>
+  <div class="box">
+    <h4>Resposta</h4>
+    <p>
+      Não existe “melhor/pior” universal. <b>NoSQL</b> se destaca em <b>escala horizontal</b>, alta taxa de leitura/escrita,
+      dados semi-estruturados e evolução rápida de schema. <b>SQL</b> se destaca quando a prioridade é <b>integridade forte</b>,
+      transações complexas e relacionamento intenso entre entidades (joins) com regras rígidas.
+      A decisão correta depende de volume, padrão de acesso, SLA de consistência e custo operacional.
+    </p>
+  </div>
+</div>
+
+<div class="item" id="p1-13">
+  <h3>1.3 — Um cenário NoSQL e um cenário SQL</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Cenário NoSQL</h4>
+      <p>
+        Telemetria/eventos de aplicação e perfis de usuário que evoluem (campos variáveis), com necessidade de escalar por volume
+        e consultas por atributos/ids. Ex.: logs, eventos de navegação, catálogo com campos opcionais.
+      </p>
+    </div>
+    <div class="box">
+      <h4>Cenário SQL</h4>
+      <p>
+        Sistema financeiro/ERP com regras fortes, auditoria e transações entre várias entidades (pedido/pagamento/faturamento),
+        exigindo consistência e integridade referencial.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="item" id="p1-14">
+  <h3>1.4 — Tipos de bancos NoSQL e características</h3>
+  <div class="box">
+    <h4>Resposta</h4>
+    <ul>
+      <li><b>Key-Value:</b> chave → valor. Muito rápido; bom para cache, sessão, feature flags, leitura direta por chave.</li>
+      <li><b>Document:</b> documentos (JSON/BSON). Flexível; bom para dados semi-estruturados e evolução rápida (ex.: MongoDB).</li>
+      <li><b>Wide-column/Column-family:</b> famílias de colunas; bom para escala distribuída e consultas por partição.</li>
+      <li><b>Graph:</b> nós/arestas; excelente para relacionamentos, recomendação, fraude e análise de redes.</li>
+    </ul>
+    <p class="small">Fontes:</p>
+    <ul class="small">
+      <li>AWS (conceitos e categorias NoSQL): https://docs.aws.amazon.com/whitepapers/latest/choosing-an-aws-nosql-database/conclusion.html</li>
+      <li>MongoDB (conceito de document database): https://www.mongodb.com/resources/basics/databases/document-databases</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===================== PARTE 2A ===================== -->
+<h2 id="A">Parte 2 — Prática (A: Instalações e criações)</h2>
+
+<div class="item" id="A4">
+  <h3>A4 — Mostrar o conteúdo de cada coleção</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>O que foi pedido</h4>
+      <p>Mostrar o conteúdo das coleções do database <b>CB_rh</b>.</p>
+    </div>
+    <div class="box">
+      <h4>Comandos</h4>
+      <pre><code>use CB_rh
+db.CB_DEPARTAMENTO.find().pretty()
+db.CB_FUNCIONARIO.find().pretty()
+db.CB_DEPENDENTE.find().pretty()</code></pre>
+    </div>
+  </div>
+  <div class="evgrid onecol">
+    <figure><img src="evidencias/A04_conteudo_colecoes.png" alt="A04"/><figcaption>evidencias/A04_conteudo_colecoes.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="A5">
+  <h3>A5 — Filtro por igualdade em DEPARTAMENTO</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>O que foi pedido</h4>
+      <p>Filtro de igualdade na coleção <b>CB_DEPARTAMENTO</b> por descrição.</p>
+    </div>
+    <div class="box">
+      <h4>Comandos</h4>
+      <pre><code>use CB_rh
+db.CB_DEPARTAMENTO.find({ descricao: "..." }).pretty()</code></pre>
+    </div>
+  </div>
+  <div class="evgrid onecol">
+    <figure><img src="evidencias/A05_filtro_igualdade_departamento.png" alt="A05"/><figcaption>evidencias/A05_filtro_igualdade_departamento.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="A6">
+  <h3>A6 — Funcionários com salário acima de 2000</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>O que foi pedido</h4>
+      <p>Mostrar em <b>CB_FUNCIONARIO</b> quem tem salário &gt; <b>2000</b>.</p>
+    </div>
+    <div class="box">
+      <h4>Comandos</h4>
+      <pre><code>use CB_rh
+db.CB_FUNCIONARIO.find({ salario: { $gt: 2000 } }).pretty()</code></pre>
+    </div>
+  </div>
+  <div class="evgrid onecol">
+    <figure><img src="evidencias/A06_salario_maior_2000.png" alt="A06"/><figcaption>evidencias/A06_salario_maior_2000.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="A7">
+  <h3>A7 — Distinct no atributo nome em DEPENDENTE</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>O que foi pedido</h4>
+      <p>Executar <b>distinct</b> no atributo <b>nome</b> na coleção <b>CB_DEPENDENTE</b>.</p>
+    </div>
+    <div class="box">
+      <h4>Comandos</h4>
+      <pre><code>use CB_rh
+db.CB_DEPENDENTE.distinct("nome")</code></pre>
+    </div>
+  </div>
+  <div class="evgrid onecol">
+    <figure><img src="evidencias/A07_distinct_dependente_nome.png" alt="A07"/><figcaption>evidencias/A07_distinct_dependente_nome.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="A8">
+  <h3>A8 — Update em uma coleção</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>O que foi pedido</h4>
+      <p>Executar um <b>update</b> em uma coleção.</p>
+    </div>
+    <div class="box">
+      <h4>Comandos</h4>
+      <pre><code>use CB_rh
+db.CB_FUNCIONARIO.updateOne(
+  { _id: ... },
+  { $set: { ... } }
+)
+db.CB_FUNCIONARIO.find({ _id: ... }).pretty()</code></pre>
+    </div>
+  </div>
+  <div class="evgrid onecol">
+    <figure><img src="evidencias/A08_update_funcionario.png" alt="A08"/><figcaption>evidencias/A08_update_funcionario.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="A9">
+  <h3>A9 — Delete (remove) em uma coleção</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>O que foi pedido</h4>
+      <p>Executar um <b>delete/remove</b> em uma coleção.</p>
+    </div>
+    <div class="box">
+      <h4>Comandos</h4>
+      <pre><code>use CB_rh
+db.CB_DEPENDENTE.deleteOne({ _id: ... })
+db.CB_DEPENDENTE.find().pretty()</code></pre>
+    </div>
+  </div>
+  <div class="evgrid onecol">
+    <figure><img src="evidencias/A09_delete_dependente.png" alt="A09"/><figcaption>evidencias/A09_delete_dependente.png</figcaption></figure>
+  </div>
+</div>
+
+<!-- ===================== PARTE 2B ===================== -->
+<h2 id="B">Parte 2 — Prática (B: Modelagem)</h2>
+
+<div class="item" id="B2">
+  <h3>B2 — Modelagem 1-N com referência</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>use CB_modelo
+db.CB_col1a.insertMany([ {...}, {...} ])
+
+db.CB_col2a.insertMany([
+  { ..., col1a_id: ObjectId("...") },
+  { ..., col1a_id: ObjectId("...") },
+  { ..., col1a_id: ObjectId("...") },
+  { ..., col1a_id: ObjectId("...") }
+])</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidência</h4>
+      <p class="mono">evidencias/B01_modelagem_1N.png</p>
+    </div>
+  </div>
+  <div class="evgrid onecol">
+    <figure><img src="evidencias/B01_modelagem_1N.png" alt="B01"/><figcaption>evidencias/B01_modelagem_1N.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="B3">
+  <h3>B3 — Modelagem N-N</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>use CB_modelo
+db.CB_col1b.insertMany([ {...}, {...} ])
+db.CB_col2b.insertMany([ {...}, {...} ])
+// se houver coleção de ligação, ela foi criada e populada no mesmo fluxo</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidência</h4>
+      <p class="mono">evidencias/B02_modelagem_NN.png</p>
+    </div>
+  </div>
+  <div class="evgrid onecol">
+    <figure><img src="evidencias/B02_modelagem_NN.png" alt="B02"/><figcaption>evidencias/B02_modelagem_NN.png</figcaption></figure>
+  </div>
+</div>
+
+<!-- ===================== PARTE 2C ===================== -->
+<h2 id="C">Parte 2 — Prática (C: Índices e Agregações)</h2>
+
+<div class="item" id="C1-C4">
+  <h3>C — Índices (indexar1/indexar2) e TTL</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>use CB_indeagreg
+
+db.CB_indexar1.createIndex({ campoAsc: 1 })
+db.CB_indexar1.createIndex({ campoUnico: -1 }, { unique: true })
+db.CB_indexar1.createIndex({ campoA: 1, campoB: 1 })
+db.CB_indexar1.createIndex({ tags: 1 })
+db.CB_indexar1.createIndex({ opcional: 1 }, { sparse: true })
+db.CB_indexar1.createIndex({ expiraEm: 1 }, { expireAfterSeconds: 20 })
+
+db.CB_indexar2.createIndex({ a:"text", b:"text", c:"text", d:"text" })
+db.CB_indexar2.find({ $text: { $search: "..." } })</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidências</h4>
+      <p class="mono">
+        evidencias/C01_indexar1_indices.png<br/>
+        evidencias/C02_ttl_antes.png<br/>
+        evidencias/C03_ttl_depois.png<br/>
+        evidencias/C04_text_index_busca.png
+      </p>
+    </div>
+  </div>
+  <div class="evgrid">
+    <figure><img src="evidencias/C01_indexar1_indices.png" alt="C01"/><figcaption>evidencias/C01_indexar1_indices.png</figcaption></figure>
+    <figure><img src="evidencias/C02_ttl_antes.png" alt="C02"/><figcaption>evidencias/C02_ttl_antes.png</figcaption></figure>
+    <figure><img src="evidencias/C03_ttl_depois.png" alt="C03"/><figcaption>evidencias/C03_ttl_depois.png</figcaption></figure>
+    <figure><img src="evidencias/C04_text_index_busca.png" alt="C04"/><figcaption>evidencias/C04_text_index_busca.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="C5">
+  <h3>C — Agregações por UF em CB_Venda</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comando (resumo)</h4>
+      <pre><code>use CB_indeagreg
+db.CB_Venda.aggregate([
+  { $group: {
+      _id: "$UF_Venda",
+      qtd:   { $sum: 1 },
+      total: { $sum: "$Valor_Venda" },
+      media: { $avg: "$Valor_Venda" },
+      maior: { $max: "$Valor_Venda" },
+      menor: { $min: "$Valor_Venda" }
+  }},
+  { $sort: { _id: 1 } }
+])</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidências</h4>
+      <p class="mono">
+        evidencias/C05_agregacoes_por_uf.png<br/>
+        evidencias/C07_venda_count_16.png
+      </p>
+    </div>
+  </div>
+  <div class="evgrid">
+    <figure><img src="evidencias/C05_agregacoes_por_uf.png" alt="C05"/><figcaption>evidencias/C05_agregacoes_por_uf.png</figcaption></figure>
+    <figure><img src="evidencias/C07_venda_count_16.png" alt="C07"/><figcaption>evidencias/C07_venda_count_16.png</figcaption></figure>
+  </div>
+</div>
+
+<!-- ===================== PARTE 2D ===================== -->
+<h2 id="D">Parte 2 — Prática (D: Replicação)</h2>
+
+<div class="item" id="D">
+  <h3>D — Replica Set CB_rsposmit (primário, 2 secundários, árbitro)</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>rs.initiate(...)
+rs.add("127.0.0.1:&lt;sec1&gt;")
+rs.add("127.0.0.1:&lt;sec2&gt;")
+rs.addArb("127.0.0.1:&lt;arb&gt;")
+
+use CB_rsposmit
+db.CB_col_filmes.insertMany([ {...},{...},{...},{...},{...} ])
+
+// nó secundário
+rs.slaveOk()
+db.CB_col_filmes.find().pretty()</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidências</h4>
+      <p class="mono">
+        evidencias/D01_mongod_rs_subindo.png<br/>
+        evidencias/D02_rs_status.png<br/>
+        evidencias/D13_insert_5_filmes_primary.png<br/>
+        evidencias/D14_read_filmes_secondary.png
+      </p>
+    </div>
+  </div>
+  <div class="evgrid">
+    <figure><img src="evidencias/D01_mongod_rs_subindo.png" alt="D01"/><figcaption>evidencias/D01_mongod_rs_subindo.png</figcaption></figure>
+    <figure><img src="evidencias/D02_rs_status.png" alt="D02"/><figcaption>evidencias/D02_rs_status.png</figcaption></figure>
+    <figure><img src="evidencias/D13_insert_5_filmes_primary.png" alt="D13"/><figcaption>evidencias/D13_insert_5_filmes_primary.png</figcaption></figure>
+    <figure><img src="evidencias/D14_read_filmes_secondary.png" alt="D14"/><figcaption>evidencias/D14_read_filmes_secondary.png</figcaption></figure>
+  </div>
+</div>
+
+<!-- ===================== PARTE 2E ===================== -->
+<h2 id="E">Parte 2 — Prática (E: Particionamento / Sharding)</h2>
+
+<div class="item" id="E">
+  <h3>E — Sharding (configRS + 4 shards + mongos)</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>sh.addShard("127.0.0.1:27200")
+sh.addShard("127.0.0.1:27201")
+sh.addShard("127.0.0.1:27202")
+sh.addShard("127.0.0.1:27203")
+
+sh.enableSharding("CB_algumdb")
+sh.shardCollection("CB_algumdb.CB_algumacol", { chave: 1 })
+
+for (var i=1; i&lt;=1000; i++){
+  db.CB_algumacol.insert({ chave:i, payload:"x" })
+}
+
+db.CB_algumacol.getShardDistribution()</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidências</h4>
+      <p class="mono">
+        evidencias/E06_mongos_conectado_27050.png<br/>
+        evidencias/E07_add_shards_status.png<br/>
+        evidencias/E08_enable_sharding_db.png<br/>
+        evidencias/E09_shard_collection.png<br/>
+        evidencias/E10_insert_1000_docs.png<br/>
+        evidencias/E11_distribuicao_shards.png
+      </p>
+    </div>
+  </div>
+  <div class="evgrid">
+    <figure><img src="evidencias/E06_mongos_conectado_27050.png" alt="E06"/><figcaption>evidencias/E06_mongos_conectado_27050.png</figcaption></figure>
+    <figure><img src="evidencias/E07_add_shards_status.png" alt="E07"/><figcaption>evidencias/E07_add_shards_status.png</figcaption></figure>
+    <figure><img src="evidencias/E08_enable_sharding_db.png" alt="E08"/><figcaption>evidencias/E08_enable_sharding_db.png</figcaption></figure>
+    <figure><img src="evidencias/E09_shard_collection.png" alt="E09"/><figcaption>evidencias/E09_shard_collection.png</figcaption></figure>
+    <figure><img src="evidencias/E10_insert_1000_docs.png" alt="E10"/><figcaption>evidencias/E10_insert_1000_docs.png</figcaption></figure>
+    <figure><img src="evidencias/E11_distribuicao_shards.png" alt="E11"/><figcaption>evidencias/E11_distribuicao_shards.png</figcaption></figure>
+  </div>
+</div>
+
+<!-- ===================== PARTE 2F ===================== -->
+<h2 id="F">Parte 2 — Prática (F: Storage Engines e Segurança)</h2>
+
+<div class="item" id="F1">
+  <h3>F1 — Instância mmapv1 + CB_produtos (4 docs)</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>mongod --port 27060 --dbpath &lt;...&gt; --logpath &lt;...&gt; --logappend --storageEngine mmapv1
+mongo mongodb://127.0.0.1:27060/admin --eval "db.serverStatus().storageEngine"
+
+use CB_rh
+db.CB_produtos.insertMany([ {...},{...},{...},{...} ])</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidências</h4>
+      <p class="mono">
+        evidencias/F01_mmapv1_storage_engine.png<br/>
+        evidencias/F02_mmapv1_produtos_insert_4.png
+      </p>
+    </div>
+  </div>
+  <div class="evgrid">
+    <figure><img src="evidencias/F01_mmapv1_storage_engine.png" alt="F01"/><figcaption>evidencias/F01_mmapv1_storage_engine.png</figcaption></figure>
+    <figure><img src="evidencias/F02_mmapv1_produtos_insert_4.png" alt="F02"/><figcaption>evidencias/F02_mmapv1_produtos_insert_4.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="F2">
+  <h3>F2 — Instância wiredTiger + CB_lugares (4 docs)</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>mongod --port 27061 --dbpath &lt;...&gt; --logpath &lt;...&gt; --logappend --storageEngine wiredTiger
+mongo mongodb://127.0.0.1:27061/admin --eval "db.serverStatus().storageEngine"
+
+use CB_rh
+db.CB_lugares.insertMany([ {...},{...},{...},{...} ])</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidências</h4>
+      <p class="mono">
+        evidencias/F04_wiredTiger_storage_engine.png<br/>
+        evidencias/F05_wiredTiger_lugares_insert_4.png
+      </p>
+    </div>
+  </div>
+  <div class="evgrid">
+    <figure><img src="evidencias/F04_wiredTiger_storage_engine.png" alt="F04"/><figcaption>evidencias/F04_wiredTiger_storage_engine.png</figcaption></figure>
+    <figure><img src="evidencias/F05_wiredTiger_lugares_insert_4.png" alt="F05"/><figcaption>evidencias/F05_wiredTiger_lugares_insert_4.png</figcaption></figure>
+  </div>
+</div>
+
+<div class="item" id="F3">
+  <h3>F3 — Segurança (auth), usuário dba, usuário CB_desenv, coleção CB_funcionarios</h3>
+  <div class="grid">
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>mongod --port 27062 --dbpath &lt;...&gt; --logpath &lt;...&gt; --logappend --auth
+
+mongo mongodb://127.0.0.1:27062/admin --eval "db.createUser({user:'dba',pwd:'dba123',roles:[{role:'root',db:'admin'}]})"
+
+mongo "mongodb://dba:dba123@127.0.0.1:27062/admin" --eval "db.getSiblingDB('CB_rh').createUser({user:'CB_desenv',pwd:'dev123',roles:[{role:'readWrite',db:'CB_rh'}]})"
+
+mongo "mongodb://CB_desenv:dev123@127.0.0.1:27062/CB_rh" --eval "db.CB_funcionarios.insertMany([ {...},{...},{...},{...} ])"</code></pre>
+    </div>
+    <div class="box">
+      <h4>Evidências</h4>
+      <p class="mono">
+        evidencias/F09_secure_login_dba_connectionStatus.png<br/>
+        evidencias/F11_createUser_CB_desenv.png<br/>
+        evidencias/F12_login_CB_desenv.png<br/>
+        evidencias/F13_insert_funcionarios_4.png
+      </p>
+    </div>
+  </div>
+  <div class="evgrid">
+    <figure><img src="evidencias/F09_secure_login_dba_connectionStatus.png" alt="F09"/><figcaption>evidencias/F09_secure_login_dba_connectionStatus.png</figcaption></figure>
+    <figure><img src="evidencias/F11_createUser_CB_desenv.png" alt="F11"/><figcaption>evidencias/F11_createUser_CB_desenv.png</figcaption></figure>
+    <figure><img src="evidencias/F12_login_CB_desenv.png" alt="F12"/><figcaption>evidencias/F12_login_CB_desenv.png</figcaption></figure>
+    <figure><img src="evidencias/F13_insert_funcionarios_4.png" alt="F13"/><figcaption>evidencias/F13_insert_funcionarios_4.png</figcaption></figure>
+  </div>
+</div>
+
+<!-- ===================== PARTE 2G ===================== -->
+<h2 id="G">Parte 2 — Prática (G: Depuração, Backup e Restore)</h2>
+
+<div class="item" id="G">
+  <h3>G — Backup/kill/delete/restore/validação (DB exerc4b)</h3>
+
+  <div class="grid">
+    <div class="box">
+      <h4>Sequência executada</h4>
+      <ul>
+        <li>Backup (mongodump) da instância</li>
+        <li>Finalização do processo (taskkill)</li>
+        <li>Exclusão do diretório de dados</li>
+        <li>Restore (mongorestore)</li>
+        <li>Validação das contagens por coleção</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h4>Comandos (resumo)</h4>
+      <pre><code>mongodump --host 127.0.0.1 --port 27070 --out "E:\...\mongo-G\backup"
+
+taskkill /PID &lt;pid&gt; /F
+
+Remove-Item "E:\...\mongo-G\data\*" -Recurse -Force
+
+mongorestore --host 127.0.0.1 --port 27070 --drop "E:\...\mongo-G\backup"
+
+use exerc4b
+db.getCollectionNames().forEach(function(c){
+  print(c + " => " + db.getCollection(c).count());
+});</code></pre>
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:10px;">
+    <h4>Evidências exigidas na rubrica</h4>
+    <p class="mono">
+      evidencias/G11_backup_mongodump.png<br/>
+      evidencias/G10_taskkill.png <br/>
+      evidencias/G11_apagar_dados.png<br/>
+      evidencias/G12_restore_ok.png<br/>
+      evidencias/G13_contagem_colecoes_exerc4b.png
+    </p>
+  </div>
+
+  <div class="evgrid">
+    <figure><img src="evidencias/G11_backup_mongodump.png" alt="G11 backup"/><figcaption>evidencias/G11_backup_mongodump.png</figcaption></figure>
+    <figure><img src="evidencias/G10_taskkill.png" alt="G10 taskkill"/><figcaption>evidencias/G10_taskkill.png</figcaption></figure>
+    <figure><img src="evidencias/G11_apagar_dados.png" alt="G11 apagar"/><figcaption>evidencias/G11_apagar_dados.png</figcaption></figure>
+    <figure><img src="evidencias/G12_restore_ok.png" alt="G12 restore"/><figcaption>evidencias/G12_restore_ok.png</figcaption></figure>
+    <figure><img src="evidencias/G13_contagem_colecoes_exerc4b.png" alt="G13 contagem"/><figcaption>evidencias/G13_contagem_colecoes_exerc4b.png</figcaption></figure>
+  </div>
+
+
+</div>
+
+</body>
+</html>

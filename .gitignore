@@ -1,0 +1,27 @@
+@'
+# Mongo runtime/data
+mongo-*/
+**/data/
+**/logs/
+**/*.wt
+**/WiredTiger*
+**/_mdb_catalog.wt
+**/sizeStorer.wt
+**/storage.bson
+**/mongod.lock
+**/journal/
+**/diagnostic.data/
+**/*.log
+
+# Tools/binarios
+tools/
+**/*.zip
+**/*.exe
+**/*.dll
+**/*.pdb
+
+# IDE/OS
+.vscode/
+.DS_Store
+Thumbs.db
+'@ | Set-Content -Encoding UTF8 .gitignore
